@@ -28,12 +28,28 @@ function isValidTicket(t) {
   return Boolean(t.id && t.subject && t.category && t.status && t.priority && t.createdAt)
 }
 
-async function fetchAirtableTickets(config) {
+// הטוקן לא נשמר בריפו. מקבלים אותו מהקישור: https://.../#token=pat...
+// החלק שאחרי # נשאר בדפדפן ולא נשלח לשרת. הוא נשמר לטאב הנוכחי בלבד (sessionStorage), כדי שרענון לא ימחק אותו.
+function getAirtableToken(config) {
+  if (config.token) return config.token
+  try {
+    const fromHash = new URLSearchParams(location.hash.slice(1)).get('token')
+    if (fromHash) {
+      sessionStorage.setItem('airtable-token', fromHash.trim())
+      history.replaceState(null, '', location.pathname + location.search) // מסירים את הטוקן משורת הכתובת
+    }
+    return sessionStorage.getItem('airtable-token') || ''
+  } catch {
+    return '' // אין גישה ל-sessionStorage: ממשיכים עם נתוני דוגמה
+  }
+}
+
+async function fetchAirtableTickets(config, token) {
   const tickets = []
   let offset = ''
   do {
     const url = `https://api.airtable.com/v0/${config.baseId}/${encodeURIComponent(config.table)}?pageSize=${AIRTABLE_PAGE_SIZE}${offset ? `&offset=${offset}` : ''}`
-    const response = await fetch(url, { headers: { Authorization: `Bearer ${config.token}` } })
+    const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
     if (!response.ok) throw new Error(`Airtable ${response.status}`)
     const data = await response.json()
     tickets.push(...data.records.map(recordToTicket).filter(isValidTicket))

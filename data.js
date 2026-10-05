@@ -214,14 +214,15 @@ const mockTickets = generateTickets()
 let dataSource = { live: false, note: 'נתוני דוגמה' }
 
 // נקודת החיבור היחידה למקור הנתונים. מחזירה Promise של מערך פניות.
-// עם טוקן ב-config.js: נתונים חיים מ-Airtable. בלי טוקן, או אם החיבור נכשל: נתוני דוגמה.
+// עם טוקן בקישור (#token=...): נתונים חיים מ-Airtable. בלי טוקן, או אם החיבור נכשל: נתוני דוגמה.
 async function getTickets() {
-  if (!AIRTABLE_CONFIG.token) {
+  const token = getAirtableToken(AIRTABLE_CONFIG)
+  if (!token) {
     dataSource = { live: false, note: 'נתוני דוגמה' }
     return mockTickets
   }
   try {
-    const tickets = await fetchAirtableTickets(AIRTABLE_CONFIG)
+    const tickets = await fetchAirtableTickets(AIRTABLE_CONFIG, token)
     dataSource = { live: true, note: 'נתונים חיים מ-Airtable' }
     return tickets
   } catch (error) {
