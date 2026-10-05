@@ -303,6 +303,7 @@ function init() {
     .then((tickets) => {
       state.tickets = tickets
       setupControls()
+      $('data-source').textContent = `${dataSource.note} · נכון ל-22/09/2026`
       $('status-msg').hidden = true
       $('content').hidden = false
       render()

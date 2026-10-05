@@ -210,8 +210,24 @@ function generateTickets() {
 
 const mockTickets = generateTickets()
 
-// נקודת החיבור היחידה למקור הנתונים. בחיבור למקור נתונים אמיתי מחליפים כאן את המימוש ב-fetch ל-API (למשל Airtable),
-// והפונקציה ממשיכה להחזיר Promise של מערך פניות באותו מבנה.
-function getTickets() {
-  return Promise.resolve(mockTickets)
+// מקור הנתונים הנוכחי, להצגה בכותרת: { live: true/false, note: טקסט }
+let dataSource = { live: false, note: 'נתוני דוגמה' }
+
+// נקודת החיבור היחידה למקור הנתונים. מחזירה Promise של מערך פניות.
+// עם טוקן בקישור (#token=...): נתונים חיים מ-Airtable. בלי טוקן, או אם החיבור נכשל: נתוני דוגמה.
+async function getTickets() {
+  const token = getAirtableToken(AIRTABLE_CONFIG)
+  if (!token) {
+    dataSource = { live: false, note: 'נתוני דוגמה' }
+    return mockTickets
+  }
+  try {
+    const tickets = await fetchAirtableTickets(AIRTABLE_CONFIG, token)
+    dataSource = { live: true, note: 'נתונים חיים מ-Airtable' }
+    return tickets
+  } catch (error) {
+    console.warn('החיבור ל-Airtable נכשל, מוצגים נתוני דוגמה:', error)
+    dataSource = { live: false, note: 'נתוני דוגמה (החיבור ל-Airtable נכשל)' }
+    return mockTickets
+  }
 }
