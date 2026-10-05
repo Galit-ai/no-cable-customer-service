@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NO Cable – שירות לקוחות</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="topbar"></div>
+    <main class="page">
+      <header class="header">
+        <div>
+          <h1>NO Cable – שירות לקוחות</h1>
+          <p class="subtitle">נתוני דוגמה · נכון ל-22/09/2026</p>
+        </div>
+        <button type="button" id="clear-filters" class="btn-light" hidden>נקה את כל הסינונים</button>
+      </header>
+
+      <p id="status-msg" class="state-msg">טוען נתונים…</p>
+
+      <div id="content" hidden>
+        <section class="kpis" id="kpis" aria-label="מדדים מרכזיים"></section>
+
+        <div class="status-chips" id="status-chips" role="group" aria-label="סינון לפי סטטוס"></div>
+
+        <section class="charts">
+          <article class="panel">
+            <h2>פניות חדשות לפי יום (30 ימים אחרונים)</h2>
+            <div class="chart-wrap">
+              <div id="volume-chart"></div>
+              <div class="tooltip" hidden></div>
+            </div>
+          </article>
+          <article class="panel">
+            <h2>פניות לפי קטגוריה <span class="hint">(לחיצה מסננת)</span></h2>
+            <div id="category-chart"></div>
+          </article>
+        </section>
+
+        <section class="panel tickets">
+          <button type="button" id="filters-toggle" class="btn-light filters-toggle" aria-expanded="false" aria-controls="filters">סינון</button>
+          <div class="filters" id="filters">
+            <label class="field">
+              <span>חיפוש</span>
+              <input id="search" type="search" placeholder="נושא או שם לקוח…" />
+            </label>
+            <label class="field">
+              <span>טלפון לקוח</span>
+              <input id="phone" type="search" inputmode="tel" placeholder="050-1234567" />
+            </label>
+            <label class="field">
+              <span>נושא הפנייה</span>
+              <select id="subject"></select>
+            </label>
+            <label class="field">
+              <span>נציג</span>
+              <select id="agent"></select>
+            </label>
+            <label class="field">
+              <span>מתאריך</span>
+              <input id="from-date" type="date" />
+            </label>
+            <label class="field">
+              <span>עד תאריך</span>
+              <input id="to-date" type="date" />
+            </label>
+          </div>
+          <p id="date-warning" class="warning" hidden>טווח התאריכים הפוך</p>
+
+          <p id="summary" class="summary" aria-live="polite"></p>
+          <div id="tickets-list" class="tickets-list"></div>
+        </section>
+      </div>
+    </main>
+
+    <script src="data.js"></script>
+    <script src="utils.js"></script>
+    <script src="charts.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
