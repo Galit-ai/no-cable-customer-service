@@ -67,8 +67,19 @@ function sortTickets(tickets, sort) {
   })
 }
 
-function computeKpis(tickets) {
-  const startOfToday = new Date(MOCK_NOW)
+// תאריך הייחוס ל"היום" ול"30 הימים האחרונים" (SPEC.md סעיף 2.2): הגדול מבין תמונת המצב של נתוני הדוגמה
+// והפנייה החדשה ביותר בנתונים, כך שפנייה חדשה נספרת "היום" בלי תלות בשעון המחשב.
+function referenceNow(tickets) {
+  let latest = MOCK_NOW
+  for (const t of tickets) {
+    const created = new Date(t.createdAt)
+    if (created > latest) latest = created
+  }
+  return latest
+}
+
+function computeKpis(tickets, now) {
+  const startOfToday = new Date(now)
   startOfToday.setHours(0, 0, 0, 0)
 
   const responseMinutes = tickets
@@ -110,8 +121,8 @@ function dayKey(d) {
 }
 
 // ספירת פניות חדשות לכל אחד מ-N הימים האחרונים (כולל ימים ריקים)
-function dailyVolume(tickets, days) {
-  const start = new Date(MOCK_NOW)
+function dailyVolume(tickets, days, now) {
+  const start = new Date(now)
   start.setHours(0, 0, 0, 0)
   start.setDate(start.getDate() - (days - 1))
 

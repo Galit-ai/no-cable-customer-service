@@ -6,4 +6,5 @@ const AIRTABLE_CONFIG = {
   baseId: 'appICZEbPgfTiBjr7',
   table: 'tblEuGeBg6jkNMr23', // מזהה הטבלה Tickets (אפשר גם את שמה)
   token: 'patFzdefw2cUmXucH.78d17b02aabe250b027e16fb7a7ce18dbb8aa18f89ce289f8387582c50848cf8', // Personal access token לקריאה בלבד: pat...
+  refreshSeconds: 60, // כל כמה שניות לרענן את הנתונים החיים (SPEC.md סעיף 6.8)
 }

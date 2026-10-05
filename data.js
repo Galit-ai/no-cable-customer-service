@@ -213,6 +213,12 @@ const mockTickets = generateTickets()
 // מקור הנתונים הנוכחי, להצגה בכותרת: { live: true/false, note: טקסט }
 let dataSource = { live: false, note: 'נתוני דוגמה' }
 
+// רענון של נתונים חיים (SPEC.md סעיף 6.8). בניגוד ל-getTickets, כישלון לא עובר לנתוני דוגמה אלא נזרק,
+// כדי שהמסך ימשיך להציג את הנתונים האחרונים שהתקבלו.
+function refreshTickets() {
+  return fetchAirtableTickets(AIRTABLE_CONFIG, getAirtableToken(AIRTABLE_CONFIG))
+}
+
 // נקודת החיבור היחידה למקור הנתונים. מחזירה Promise של מערך פניות.
 // עם טוקן בקישור (#token=...): נתונים חיים מ-Airtable. בלי טוקן, או אם החיבור נכשל: נתוני דוגמה.
 async function getTickets() {

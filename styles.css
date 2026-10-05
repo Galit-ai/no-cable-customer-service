@@ -31,6 +31,13 @@ h1 { margin: 0; font-size: 1.6rem; color: var(--ink-on-bg); }
 h2 { margin: 0 0 12px; font-size: 1rem; }
 .subtitle { margin: 4px 0 0; color: var(--on-bg); font-size: 0.9rem; }
 .hint { font-weight: 400; color: var(--text-muted); font-size: 0.85rem; }
+.refresh-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--on-bg); font-size: 0.9rem; margin: -8px 0 14px; }
+.refresh-bar .btn-light { min-height: 36px; padding: 4px 12px; }
+.badge { display: inline-block; font-size: 0.7rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; margin-inline-start: 8px; color: #fff; vertical-align: middle; }
+.badge-new { background: #0f7a56; }
+.badge-updated { background: #1f5fb0; }
+.row-new td, .card.row-new { background: #ecfdf5; }
+.row-updated td, .card.row-updated { background: #eff6ff; }
 .state-msg { color: var(--on-bg); text-align: center; padding: 48px 0; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
