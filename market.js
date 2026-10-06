@@ -29,9 +29,6 @@ const COMPLAINT_THEMES = {
   'ביטול מנוי': ['ביטול', 'מבטלים', 'לבטל'],
 }
 
-// צבע קבוע לכל נושא תלונה (ארבעה נושאים, ארבעה צבעים), בפלטה של הדאשבורד
-const THEME_COLORS = { 'מחיר וחיוב': '#2a78d6', 'תקלות שידור': '#eb6834', 'שירות לקוחות': '#4a3aa7', 'ביטול מנוי': '#e87ba4' }
-
 // כוונת עזיבה (SPEC.md 14.9): ביטוי שמעיד על ביטול, מעבר או חיפוש חלופה
 const LEAVE_PHRASES = ['שוקל לעבור', 'שוקל לבטל', 'שוקל לעזוב', 'מחפש חלופה', 'עוברים ל', 'עברתי ל', 'מעבר ל', 'לעזוב', 'איך מבטלים', 'ביטול מנוי']
 
@@ -64,14 +61,11 @@ function toMentions(raw) {
   })
 }
 
-// טבלת נושאים x חברות: מספר תגובות שליליות בכל נושא
-function complaintMatrix(mentions) {
-  const brands = brandSentiment(mentions).map((r) => r.brand)
-  const rows = Object.keys(COMPLAINT_THEMES).map((theme) => ({
-    theme,
-    counts: brands.map((b) => mentions.filter((m) => m.brand === b && m.themes.includes(theme)).length),
-  }))
-  return { brands, rows }
+// כמה תגובות שליליות בכל נושא, ממוין מהגדול לקטן
+function complaintCounts(mentions) {
+  return Object.keys(COMPLAINT_THEMES)
+    .map((theme) => ({ theme, count: mentions.filter((m) => m.themes.includes(theme)).length }))
+    .sort((a, b) => b.count - a.count)
 }
 
 // שורה לכל חברה: ספירה לפי סנטימנט. החברה שלנו ראשונה, ואחריה לפי מספר התגובות.
@@ -331,40 +325,23 @@ function renderResearch() {
   )
 }
 
-function hexToRgb(hex) {
-  const n = parseInt(hex.slice(1), 16)
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
-}
-
+// גרף עמודות פשוט: ארבעה נושאים, צבע אחד, המספר ליד כל עמודה. מתעדכן לפי סינון החברה.
 function renderComplaints(mentions) {
-  const { brands, rows } = complaintMatrix(mentions)
-  const max = Math.max(...rows.flatMap((r) => r.counts), 1)
-  const table = buildTable(
-    ['נושא התלונה', ...brands],
-    rows.map((r) => {
-      const [red, green, blue] = hexToRgb(THEME_COLORS[r.theme])
-      const label = el('span', '', r.theme)
-      const dot = el('span', 'dot')
-      dot.style.background = THEME_COLORS[r.theme]
-      label.prepend(dot)
-      return {
-        cells: [
-          label,
-          ...r.counts.map((c) => {
-            const span = el('span', 'heat', c === 0 ? '—' : String(c))
-            if (c > 0) {
-              const alpha = 0.25 + 0.65 * (c / max)
-              span.style.background = `rgba(${red}, ${green}, ${blue}, ${alpha})`
-              if (alpha > 0.8) span.style.color = '#fff'
-            }
-            return span
-          }),
-        ],
-      }
-    }),
-  )
-  table.classList.add('heat-table')
-  $('complaints-table').replaceChildren(table)
+  const rows = complaintCounts(mentions)
+  const max = Math.max(...rows.map((r) => r.count), 1)
+  const list = el('div', 'cat-chart')
+  for (const r of rows) {
+    const row = el('div', 'cat-row leave-row')
+    row.setAttribute('aria-label', `${r.theme}: ${r.count} תגובות שליליות`)
+    const track = el('span', 'cat-track')
+    const fill = el('span', 'cat-fill')
+    fill.style.width = `${(r.count / max) * 100}%`
+    fill.style.background = SENTIMENT_COLORS['שלילי']
+    track.append(fill)
+    row.append(el('span', 'cat-label', r.theme), track, el('span', 'cat-value', String(r.count)))
+    list.append(row)
+  }
+  $('complaints-table').replaceChildren(list)
 }
 
 function renderMarket() {
@@ -376,7 +353,7 @@ function renderMarket() {
   renderSentimentChart(all)
   renderTrendChart(filtered)
   renderTopComments(filtered)
-  renderComplaints(marketState.mentions)
+  renderComplaints(filtered)
   renderResearch()
   $('trend-scope').textContent = marketState.brand === ALL ? 'כל החברות' : marketState.brand
   $('market-clear').hidden = marketState.brand === ALL
