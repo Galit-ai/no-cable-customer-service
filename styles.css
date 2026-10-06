@@ -186,3 +186,13 @@ button, input, select, textarea { font: inherit; }
 .research-table td { padding: 8px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
 .research-table tr.fake td { background: #fff8e6; }
 .fake-tag { display: inline-block; margin-inline-start: 6px; font-size: 0.7rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--yellow); color: #3b2a00; }
+
+.heat-table { min-width: 0; text-align: center; }
+.heat-table td:first-child, .heat-table th:first-child { text-align: right; white-space: nowrap; }
+.heat-table th { text-align: center; }
+.heat { display: block; border-radius: 6px; padding: 4px 0; font-weight: 600; }
+.leave-row { cursor: default; grid-template-columns: 90px 1fr 48px; }
+.leave-row:hover { background: none; }
+.mention-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; flex-shrink: 0; }
+.mention-tag { font-size: 0.7rem; padding: 1px 8px; border-radius: 999px; background: #eee9fb; color: var(--ink-on-bg); white-space: nowrap; }
+#leaving-chart .top-list { margin-top: 12px; }

@@ -21,8 +21,63 @@ function detectSentiment(text) {
   return score > 0 ? 'חיובי' : score < 0 ? 'שלילי' : 'ניטרלי'
 }
 
+// נושאי תלונה (SPEC.md 14.8): תגובה שלילית נספרת בכל נושא שמילת מפתח שלו מופיעה בה
+const COMPLAINT_THEMES = {
+  'מחיר וחיוב': ['יקר', 'מחיר', 'חיוב', 'חשבונית', 'עלייה', 'עלה', 'עלתה'],
+  'תקלות שידור': ['תקלה', 'תקלות', 'הפסקת שידור', 'קריסה', 'קורסת', 'נתקע'],
+  'שירות לקוחות': ['לא עונים', 'ממתינים', 'חיכיתי', 'התעלם', 'נציג', 'בשירות'],
+  'ביטול מנוי': ['ביטול', 'מבטלים', 'לבטל'],
+}
+
+// כוונת עזיבה (SPEC.md 14.9): ביטוי שמעיד על ביטול, מעבר או חיפוש חלופה
+const LEAVE_PHRASES = ['שוקל לעבור', 'שוקל לבטל', 'שוקל לעזוב', 'מחפש חלופה', 'עוברים ל', 'עברתי ל', 'מעבר ל', 'לעזוב', 'איך מבטלים', 'ביטול מנוי']
+
+// שם שמופיע בטקסט -> שם החברה במסך
+const BRAND_ALIASES = { HOT: 'HOT', yes: 'yes', Partner: 'Partner TV', Cellcom: 'Cellcom TV', נטפליקס: 'Netflix', Netflix: 'Netflix', 'No Cable': 'No Cable' }
+
+function detectThemes(text) {
+  return Object.keys(COMPLAINT_THEMES).filter((theme) => COMPLAINT_THEMES[theme].some((w) => text.includes(w)))
+}
+
+function detectLeaving(text) {
+  return LEAVE_PHRASES.some((p) => text.includes(p))
+}
+
+// חברות אחרות שמוזכרות בטקסט של תגובה בדף של חברה
+function mentionedBrands(text, ownBrand) {
+  return [...new Set(Object.entries(BRAND_ALIASES).filter(([alias]) => text.includes(alias)).map(([, brand]) => brand))].filter((b) => b !== ownBrand)
+}
+
 function toMentions(raw) {
-  return raw.map((m) => ({ ...m, sentiment: detectSentiment(m.text) }))
+  return raw.map((m) => {
+    const sentiment = detectSentiment(m.text)
+    return {
+      ...m,
+      sentiment,
+      themes: sentiment === 'שלילי' ? detectThemes(m.text) : [],
+      leaving: detectLeaving(m.text),
+      mentioned: mentionedBrands(m.text, m.brand),
+    }
+  })
+}
+
+// טבלת נושאים x חברות: מספר תגובות שליליות בכל נושא
+function complaintMatrix(mentions) {
+  const brands = brandSentiment(mentions).map((r) => r.brand)
+  const rows = Object.keys(COMPLAINT_THEMES).map((theme) => ({
+    theme,
+    counts: brands.map((b) => mentions.filter((m) => m.brand === b && m.themes.includes(theme)).length),
+  }))
+  return { brands, rows }
+}
+
+// לכל חברה: כמה תגובות מבטאות כוונת עזיבה, מתוך כלל התגובות שלה
+function leavingByBrand(mentions) {
+  return brandSentiment(mentions).map((r) => ({
+    brand: r.brand,
+    total: r.total,
+    leaving: mentions.filter((m) => m.brand === r.brand && m.leaving).length,
+  }))
 }
 
 // שורה לכל חברה: ספירה לפי סנטימנט. החברה שלנו ראשונה, ואחריה לפי מספר התגובות.
@@ -276,6 +331,56 @@ function renderResearch() {
   )
 }
 
+function renderComplaints(mentions) {
+  const { brands, rows } = complaintMatrix(mentions)
+  const max = Math.max(...rows.flatMap((r) => r.counts), 1)
+  const table = buildTable(
+    ['נושא התלונה', ...brands],
+    rows.map((r) => ({
+      cells: [
+        r.theme,
+        ...r.counts.map((c) => {
+          const span = el('span', 'heat', c === 0 ? '—' : String(c))
+          span.style.background = c === 0 ? 'transparent' : `rgba(192, 57, 43, ${0.12 + 0.6 * (c / max)})`
+          return span
+        }),
+      ],
+    })),
+  )
+  table.classList.add('heat-table')
+  $('complaints-table').replaceChildren(table)
+}
+
+function renderLeaving(mentions) {
+  const rows = leavingByBrand(mentions)
+  const list = el('div', 'cat-chart')
+  for (const r of rows) {
+    const pct = r.total ? Math.round((r.leaving / r.total) * 100) : 0
+    const row = el('div', 'cat-row leave-row')
+    const track = el('span', 'cat-track')
+    const fill = el('span', 'cat-fill')
+    fill.style.width = `${pct}%`
+    fill.style.background = SENTIMENT_COLORS['שלילי']
+    track.append(fill)
+    row.append(el('span', 'cat-label', r.brand), track, el('span', 'cat-value', `${r.leaving}/${r.total}`))
+    row.setAttribute('aria-label', `${r.brand}: ${r.leaving} מתוך ${r.total} תגובות מבטאות כוונת עזיבה (${pct}%)`)
+    list.append(row)
+  }
+  const leaving = mentions.filter((m) => m.leaving).sort((a, b) => engagement(b) - engagement(a))
+  const items = el('ul', 'top-list')
+  if (leaving.length === 0) items.append(el('li', 'empty', 'אין תגובות עם כוונת עזיבה'))
+  for (const m of leaving) {
+    const item = el('li', 'top-item')
+    const body = el('div', 'top-body')
+    body.append(el('span', 'top-text', m.text), el('div', 'top-meta', `${m.brand} · ${m.author} · 👍 ${m.likes}`))
+    const tags = el('span', 'mention-tags')
+    for (const b of m.mentioned) tags.append(el('span', 'mention-tag', `מוזכר: ${b}`))
+    item.append(body, tags)
+    items.append(item)
+  }
+  $('leaving-chart').replaceChildren(list, items)
+}
+
 function renderMarket() {
   const all = marketState.mentions
   const filtered = all.filter((m) => marketState.brand === ALL || m.brand === marketState.brand)
@@ -285,6 +390,8 @@ function renderMarket() {
   renderSentimentChart(all)
   renderTrendChart(filtered)
   renderTopComments(filtered)
+  renderComplaints(marketState.mentions)
+  renderLeaving(marketState.mentions)
   renderResearch()
   $('trend-scope').textContent = marketState.brand === ALL ? 'כל החברות' : marketState.brand
   $('market-clear').hidden = marketState.brand === ALL
