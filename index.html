@@ -9,6 +9,12 @@
   <body>
     <div class="topbar"></div>
     <main class="page">
+      <nav class="tabs" role="tablist" aria-label="מסכים">
+        <button type="button" class="tab" role="tab" data-tab="service" aria-selected="true">שירות לקוחות</button>
+        <button type="button" class="tab" role="tab" data-tab="market" aria-selected="false">מחקר שוק</button>
+      </nav>
+
+      <div id="service-view">
       <header class="header">
         <div>
           <h1>NO Cable – שירות לקוחות</h1>
@@ -77,6 +83,32 @@
           <div id="tickets-list" class="tickets-list"></div>
         </section>
       </div>
+      </div>
+
+      <section id="market-view" hidden>
+        <header class="header">
+          <div>
+            <h1>מחקר שוק – NO Cable מול המתחרים</h1>
+            <p class="subtitle" id="market-source"></p>
+          </div>
+          <button type="button" id="market-clear" class="btn-light" hidden>נקה סינון</button>
+        </header>
+        <section class="kpis kpis-4" id="market-kpis" aria-label="מדדי מחקר שוק"></section>
+        <section class="charts market-charts">
+          <article class="panel">
+            <h2>סנטימנט לפי חברה <span class="hint">(לחיצה מסננת)</span></h2>
+            <div id="sentiment-chart"></div>
+          </article>
+          <article class="panel">
+            <h2>תגובות לפי שבוע <span class="hint" id="trend-scope"></span></h2>
+            <div id="trend-chart" class="chart-wrap"></div>
+          </article>
+        </section>
+        <section class="panel">
+          <h2>התגובות עם הכי הרבה מעורבות <span class="hint">(לייקים + 2 × תגובות)</span></h2>
+          <div id="top-comments"></div>
+        </section>
+      </section>
     </main>
 
     <script src="config.js"></script>
@@ -85,5 +117,7 @@
     <script src="utils.js"></script>
     <script src="charts.js"></script>
     <script src="app.js"></script>
+    <script src="market-data.js"></script>
+    <script src="market.js"></script>
   </body>
 </html>
