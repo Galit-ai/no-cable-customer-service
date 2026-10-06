@@ -68,8 +68,21 @@ function engagement(m) {
 
 // ---------- רינדור ----------
 
-const marketState = { mentions: [], brand: ALL }
+// תגובות מהחודש האחרון בלבד (SPEC.md 14.5). הייחוס הוא התגובה החדשה ביותר בנתונים, לא שעון המחשב.
+const MARKET_WINDOW_DAYS = 30
+
+const marketState = { mentions: [], brand: ALL, until: null }
 let marketReady = false
+
+function recentMentions(mentions, days) {
+  if (mentions.length === 0) return { recent: [], until: null }
+  const until = Math.max(...mentions.map((m) => new Date(m.date).getTime()))
+  return { recent: mentions.filter((m) => new Date(m.date).getTime() > until - days * DAY_MS), until }
+}
+
+function formatDay(ms) {
+  return new Date(ms).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })
+}
 
 function marketSourceText(mentions) {
   const sampleBrands = [...new Set(mentions.filter((m) => m.sample).map((m) => m.brand))]
@@ -266,7 +279,8 @@ function renderResearch() {
 function renderMarket() {
   const all = marketState.mentions
   const filtered = all.filter((m) => marketState.brand === ALL || m.brand === marketState.brand)
-  $('market-source').textContent = marketSourceText(all)
+  const windowText = marketState.until ? ` · תגובות מ-${MARKET_WINDOW_DAYS} הימים האחרונים (עד ${formatDay(marketState.until)})` : ''
+  $('market-source').textContent = marketSourceText(all) + windowText
   renderMarketKpis(all, filtered)
   renderSentimentChart(all)
   renderTrendChart(filtered)
@@ -283,7 +297,9 @@ function showTab(name) {
   for (const tab of document.querySelectorAll('.tab')) tab.setAttribute('aria-selected', String(tab.dataset.tab === name))
   if (market && !marketReady) {
     marketReady = true
-    marketState.mentions = toMentions(MARKET_MENTIONS)
+    const { recent, until } = recentMentions(MARKET_MENTIONS, MARKET_WINDOW_DAYS)
+    marketState.mentions = toMentions(recent)
+    marketState.until = until
     renderMarket()
   }
 }
