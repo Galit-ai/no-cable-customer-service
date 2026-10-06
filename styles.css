@@ -193,3 +193,14 @@ button, input, select, textarea { font: inherit; }
 .leave-tag { background: #fde8e6; color: #8f2a1f; font-weight: 600; }
 .leave-row { cursor: default; grid-template-columns: 110px 1fr 32px; }
 .leave-row:hover { background: none; }
+
+/* כרטיס שערי חליפין (SPEC.md סעיף 15) */
+.exchange { margin-top: 16px; }
+.rates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 12px 0 8px; }
+.rate { background: #f8fafc; border: 1px solid var(--border); border-top: 4px solid var(--blue); border-radius: 10px; padding: 12px; }
+.rate:nth-child(2) { border-top-color: var(--violet); }
+.rate:nth-child(3) { border-top-color: var(--green); }
+.rate-label { font-size: 0.8rem; color: var(--text-muted); }
+.rate-value { font-size: 1.6rem; font-weight: 600; color: var(--text); }
+.rates.rates-error { display: block; color: var(--red); font-size: 0.9rem; }
+@media (max-width: 599px) { .rates { grid-template-columns: 1fr; } }
