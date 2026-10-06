@@ -49,6 +49,12 @@
           </article>
         </section>
 
+        <section class="panel exchange" aria-label="שערי חליפין">
+          <h2>שערי חליפין לטיפול בפניות חיוב והחזר <span class="hint">(מקור: Frankfurter API, הבנק האירופי המרכזי)</span></h2>
+          <div class="rates" id="exchange-rates" aria-live="polite">טוען שערים…</div>
+          <p class="hint" id="exchange-date"></p>
+        </section>
+
         <section class="panel tickets">
           <button type="button" id="filters-toggle" class="btn-light filters-toggle" aria-expanded="false" aria-controls="filters">סינון</button>
           <div class="filters" id="filters">
@@ -130,6 +136,7 @@
     <script src="airtable.js"></script>
     <script src="utils.js"></script>
     <script src="charts.js"></script>
+    <script src="exchange-rates.js"></script>
     <script src="app.js"></script>
     <script src="market-data.js"></script>
     <script src="market-research.js"></script>
