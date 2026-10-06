@@ -191,10 +191,7 @@ button, input, select, textarea { font: inherit; }
 .heat-table td:first-child, .heat-table th:first-child { text-align: right; white-space: nowrap; }
 .heat-table th { text-align: center; }
 .heat { display: block; border-radius: 6px; padding: 4px 0; font-weight: 600; }
-.leave-row { cursor: default; grid-template-columns: 90px 1fr 48px; }
-.leave-row:hover { background: none; }
 .mention-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; flex-shrink: 0; }
 .mention-tag { font-size: 0.7rem; padding: 1px 8px; border-radius: 999px; background: #eee9fb; color: var(--ink-on-bg); white-space: nowrap; }
-#leaving-chart .cat-chart { margin-bottom: 4px; }
 .top-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
 .leave-tag { background: #fde8e6; color: #8f2a1f; font-weight: 600; }

@@ -71,15 +71,6 @@ function complaintMatrix(mentions) {
   return { brands, rows }
 }
 
-// לכל חברה: כמה תגובות מבטאות כוונת עזיבה, מתוך כלל התגובות שלה
-function leavingByBrand(mentions) {
-  return brandSentiment(mentions).map((r) => ({
-    brand: r.brand,
-    total: r.total,
-    leaving: mentions.filter((m) => m.brand === r.brand && m.leaving).length,
-  }))
-}
-
 // שורה לכל חברה: ספירה לפי סנטימנט. החברה שלנו ראשונה, ואחריה לפי מספר התגובות.
 function brandSentiment(mentions) {
   const rows = new Map()
@@ -357,24 +348,6 @@ function renderComplaints(mentions) {
   $('complaints-table').replaceChildren(table)
 }
 
-function renderLeaving(mentions) {
-  const rows = leavingByBrand(mentions)
-  const list = el('div', 'cat-chart')
-  for (const r of rows) {
-    const pct = r.total ? Math.round((r.leaving / r.total) * 100) : 0
-    const row = el('div', 'cat-row leave-row')
-    const track = el('span', 'cat-track')
-    const fill = el('span', 'cat-fill')
-    fill.style.width = `${pct}%`
-    fill.style.background = SENTIMENT_COLORS['שלילי']
-    track.append(fill)
-    row.append(el('span', 'cat-label', r.brand), track, el('span', 'cat-value', `${r.leaving}/${r.total}`))
-    row.setAttribute('aria-label', `${r.brand}: ${r.leaving} מתוך ${r.total} תגובות מבטאות כוונת עזיבה (${pct}%)`)
-    list.append(row)
-  }
-  $('leaving-chart').replaceChildren(list)
-}
-
 function renderMarket() {
   const all = marketState.mentions
   const filtered = all.filter((m) => marketState.brand === ALL || m.brand === marketState.brand)
@@ -385,7 +358,6 @@ function renderMarket() {
   renderTrendChart(filtered)
   renderTopComments(filtered)
   renderComplaints(marketState.mentions)
-  renderLeaving(marketState.mentions)
   renderResearch()
   $('trend-scope').textContent = marketState.brand === ALL ? 'כל החברות' : marketState.brand
   $('market-clear').hidden = marketState.brand === ALL
