@@ -6,18 +6,47 @@ const SENTIMENTS = ['חיובי', 'ניטרלי', 'שלילי']
 const SENTIMENT_COLORS = { חיובי: '#0f7a56', ניטרלי: '#6b6a66', שלילי: '#c0392b' }
 
 // ניתוח סנטימנט פשוט לפי מילות מפתח בעברית. מספיק להדגמה; אפשר להחליף במודל (SPEC.md 14.4).
+// הרשימות הורחבו לפי תגובות אמיתיות מפייסבוק: תגובות על סדרות ("סדרה מעולה", "בזבוז זמן"), על שירות ועל פרסומות.
 const POSITIVE_WORDS = [
-  'מעולה', 'מצוין', 'נהדר', 'מרוצה', 'ממליץ', 'שירות טוב', 'מהיר', 'יציב', 'אמין', 'משתלם',
-  'זולה', 'הוגן', 'כיף', 'נוח', 'השתפר', 'השיפור', 'אדיבה', 'חלקה', 'נעים',
+  'מעולה', 'מצוין', 'מצויין', 'נהדר', 'נפלא', 'מדהים', 'מושלם', 'מקסים', 'מהממת', 'מרתק', 'מרגש', 'סוחפת',
+  'מצויינת', 'מצוינת', 'יפה', 'הכי טוב', 'מטורפת', 'מטורף', 'איכותי', 'שווה כל', 'שווה ביותר', 'מומלץ', 'ממולץ', 'ממליץ', 'ממליצה',
+  'אהבתי', 'נהניתי', 'נהנתי', 'יופי', 'אלופים', 'וואו', 'ואוו', 'גאווה', 'כיף', 'הכייף', 'נעים',
+  'מופלא', 'תודה', 'מרוצה', 'שירות טוב', 'מהיר', 'יציב', 'אמין', 'משתלם', 'זולה', 'הוגן', 'נוח', 'השתפר', 'השיפור', 'אדיבה', 'חלקה',
 ]
 const NEGATIVE_WORDS = [
-  'גרוע', 'איטי', 'תקלה', 'תקלות', 'יקר', 'מתסכל', 'נוראי', 'מאכזב', 'מעצבן', 'קריסה', 'קורסת',
-  'הפסקת שידור', 'לא עונים', 'סיוט', 'התעלם', 'נתקע', 'לא הסבירו', 'בלי הסבר', 'מחכה', 'שוקל לבטל',
+  'גרוע', 'איטי', 'איטית', 'תקלה', 'תקלות', 'יקר', 'מתסכל', 'נוראי', 'מאכזב', 'מעצבן', 'קריסה', 'קורסת', 'הפסקת שידור',
+  'לא עונים', 'סיוט', 'התעלם', 'נתקע', 'לא הסבירו', 'בלי הסבר', 'מחכה', 'שוקל לבטל',
+  'בזבוז זמן', 'לבזבז זמן', 'משעממת', 'משעמם', 'הזוי', 'ביזיון', 'כושלת', 'גנבים', 'להתרחק', 'בינונית', 'רדוד', 'קודר', 'מדכא',
+  'אכזרית', 'קשה לצפי', 'לא עפתי', 'חצופים', 'פרסומות', 'טיפשי', 'חבל', 'מנתקים', 'שורף', 'תחסכו',
 ]
 
+// מנרמלים אותיות מוארכות ("מעולהההה" -> "מעולה") לפני החיפוש
+function normalizeText(text) {
+  return text.toLowerCase().replace(/(.)\1{2,}/g, '$1')
+}
+
+// חיפוש מילה מתחילת מילה, כולל תחיליות נפוצות (ב, ה, ו, ל, כ, מ, ש), כדי ש"יקר" לא ייתפס בתוך "בעיקר".
+// מחזיר את מיקום תחילת המילה כולל התחילית, או -1
+const wordRegexCache = new Map()
+function findWord(text, word) {
+  if (!wordRegexCache.has(word)) wordRegexCache.set(word, new RegExp(`(^|[^\u05D0-\u05EA])([בהולכמש]{0,2}${word})`))
+  const m = wordRegexCache.get(word).exec(text)
+  return m ? m.index + m[1].length : -1
+}
+
+// מילה חיובית אחרי "לא" ("לא מומלץ", "שלא ממליצה") נספרת כשלילית
+function isNegated(text, index) {
+  return /(^|\s)ש?לא\s*$/.test(text.slice(Math.max(0, index - 7), index))
+}
+
 function detectSentiment(text) {
-  const t = text.toLowerCase()
-  const score = POSITIVE_WORDS.filter((w) => t.includes(w)).length - NEGATIVE_WORDS.filter((w) => t.includes(w)).length
+  const t = normalizeText(text)
+  let score = 0
+  for (const w of POSITIVE_WORDS) {
+    const i = findWord(t, w)
+    if (i !== -1) score += isNegated(t, i) ? -1 : 1
+  }
+  for (const w of NEGATIVE_WORDS) if (findWord(t, w) !== -1) score -= 1
   return score > 0 ? 'חיובי' : score < 0 ? 'שלילי' : 'ניטרלי'
 }
 
@@ -36,11 +65,11 @@ const LEAVE_PHRASES = ['שוקל לעבור', 'שוקל לבטל', 'שוקל ל�
 const BRAND_ALIASES = { HOT: 'HOT', yes: 'yes', Partner: 'Partner TV', Cellcom: 'Cellcom TV', נטפליקס: 'Netflix', Netflix: 'Netflix', 'No Cable': 'No Cable' }
 
 function detectThemes(text) {
-  return Object.keys(COMPLAINT_THEMES).filter((theme) => COMPLAINT_THEMES[theme].some((w) => text.includes(w)))
+  return Object.keys(COMPLAINT_THEMES).filter((theme) => COMPLAINT_THEMES[theme].some((w) => findWord(text, w) !== -1))
 }
 
 function detectLeaving(text) {
-  return LEAVE_PHRASES.some((p) => text.includes(p))
+  return LEAVE_PHRASES.some((p) => findWord(text, p) !== -1)
 }
 
 // חברות אחרות שמוזכרות בטקסט של תגובה בדף של חברה
