@@ -29,6 +29,9 @@ const COMPLAINT_THEMES = {
   'ביטול מנוי': ['ביטול', 'מבטלים', 'לבטל'],
 }
 
+// צבע קבוע לכל נושא תלונה (ארבעה נושאים, ארבעה צבעים), בפלטה של הדאשבורד
+const THEME_COLORS = { 'מחיר וחיוב': '#2a78d6', 'תקלות שידור': '#eb6834', 'שירות לקוחות': '#4a3aa7', 'ביטול מנוי': '#e87ba4' }
+
 // כוונת עזיבה (SPEC.md 14.9): ביטוי שמעיד על ביטול, מעבר או חיפוש חלופה
 const LEAVE_PHRASES = ['שוקל לעבור', 'שוקל לבטל', 'שוקל לעזוב', 'מחפש חלופה', 'עוברים ל', 'עברתי ל', 'מעבר ל', 'לעזוב', 'איך מבטלים', 'ביטול מנוי']
 
@@ -328,21 +331,37 @@ function renderResearch() {
   )
 }
 
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+}
+
 function renderComplaints(mentions) {
   const { brands, rows } = complaintMatrix(mentions)
   const max = Math.max(...rows.flatMap((r) => r.counts), 1)
   const table = buildTable(
     ['נושא התלונה', ...brands],
-    rows.map((r) => ({
-      cells: [
-        r.theme,
-        ...r.counts.map((c) => {
-          const span = el('span', 'heat', c === 0 ? '—' : String(c))
-          span.style.background = c === 0 ? 'transparent' : `rgba(192, 57, 43, ${0.12 + 0.6 * (c / max)})`
-          return span
-        }),
-      ],
-    })),
+    rows.map((r) => {
+      const [red, green, blue] = hexToRgb(THEME_COLORS[r.theme])
+      const label = el('span', '', r.theme)
+      const dot = el('span', 'dot')
+      dot.style.background = THEME_COLORS[r.theme]
+      label.prepend(dot)
+      return {
+        cells: [
+          label,
+          ...r.counts.map((c) => {
+            const span = el('span', 'heat', c === 0 ? '—' : String(c))
+            if (c > 0) {
+              const alpha = 0.25 + 0.65 * (c / max)
+              span.style.background = `rgba(${red}, ${green}, ${blue}, ${alpha})`
+              if (alpha > 0.8) span.style.color = '#fff'
+            }
+            return span
+          }),
+        ],
+      }
+    }),
   )
   table.classList.add('heat-table')
   $('complaints-table').replaceChildren(table)
