@@ -195,4 +195,6 @@ button, input, select, textarea { font: inherit; }
 .leave-row:hover { background: none; }
 .mention-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; flex-shrink: 0; }
 .mention-tag { font-size: 0.7rem; padding: 1px 8px; border-radius: 999px; background: #eee9fb; color: var(--ink-on-bg); white-space: nowrap; }
-#leaving-chart .top-list { margin-top: 12px; }
+#leaving-chart .cat-chart { margin-bottom: 4px; }
+.top-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.leave-tag { background: #fde8e6; color: #8f2a1f; font-weight: 600; }

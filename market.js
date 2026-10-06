@@ -278,7 +278,13 @@ function renderTopComments(filtered) {
     body.append(textNode, el('div', 'top-meta', `${m.brand} · ${m.author} · 👍 ${m.likes} · 💬 ${m.replies}`))
     const badge = el('span', 'sent-badge', m.sentiment)
     badge.style.background = SENTIMENT_COLORS[m.sentiment]
-    item.append(body, badge)
+    const side = el('span', 'top-side')
+    side.append(badge)
+    if (m.leaving) {
+      side.append(el('span', 'mention-tag leave-tag', 'חושב לעזוב'))
+      for (const b of m.mentioned) side.append(el('span', 'mention-tag', `מוזכר: ${b}`))
+    }
+    item.append(body, side)
     list.append(item)
   }
   $('top-comments').replaceChildren(list)
@@ -366,19 +372,7 @@ function renderLeaving(mentions) {
     row.setAttribute('aria-label', `${r.brand}: ${r.leaving} מתוך ${r.total} תגובות מבטאות כוונת עזיבה (${pct}%)`)
     list.append(row)
   }
-  const leaving = mentions.filter((m) => m.leaving).sort((a, b) => engagement(b) - engagement(a))
-  const items = el('ul', 'top-list')
-  if (leaving.length === 0) items.append(el('li', 'empty', 'אין תגובות עם כוונת עזיבה'))
-  for (const m of leaving) {
-    const item = el('li', 'top-item')
-    const body = el('div', 'top-body')
-    body.append(el('span', 'top-text', m.text), el('div', 'top-meta', `${m.brand} · ${m.author} · 👍 ${m.likes}`))
-    const tags = el('span', 'mention-tags')
-    for (const b of m.mentioned) tags.append(el('span', 'mention-tag', `מוזכר: ${b}`))
-    item.append(body, tags)
-    items.append(item)
-  }
-  $('leaving-chart').replaceChildren(list, items)
+  $('leaving-chart').replaceChildren(list)
 }
 
 function renderMarket() {
@@ -389,7 +383,7 @@ function renderMarket() {
   renderMarketKpis(all, filtered)
   renderSentimentChart(all)
   renderTrendChart(filtered)
-  renderTopComments(filtered.filter((m) => !m.leaving)) // תגובות עם כוונת עזיבה מוצגות בפאנל שלהן (14.9), לא פעמיים
+  renderTopComments(filtered)
   renderComplaints(marketState.mentions)
   renderLeaving(marketState.mentions)
   renderResearch()
