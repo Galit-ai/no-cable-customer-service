@@ -216,6 +216,53 @@ function renderTopComments(filtered) {
   $('top-comments').replaceChildren(list)
 }
 
+function buildTable(headers, rows) {
+  const table = el('table', 'research-table')
+  const head = table.createTHead().insertRow()
+  for (const h of headers) head.append(el('th', '', h))
+  const body = table.createTBody()
+  for (const { cells, fake } of rows) {
+    const tr = body.insertRow()
+    if (fake) tr.className = 'fake'
+    for (const c of cells) {
+      const td = tr.insertCell()
+      if (c instanceof Node) td.append(c)
+      else td.textContent = c
+    }
+  }
+  return table
+}
+
+function sourceCell(source, url) {
+  if (!url) return source
+  const a = el('a', '', source)
+  a.href = url
+  a.target = '_blank'
+  a.rel = 'noreferrer'
+  return a
+}
+
+function brandCell(brand, fake) {
+  const span = el('span', '', brand)
+  if (fake) span.append(el('span', 'fake-tag', 'חברת דמה'))
+  return span
+}
+
+function renderResearch() {
+  $('packages-table').replaceChildren(
+    buildTable(
+      ['חברה', 'חבילה', 'מחיר לחודש', 'מה כלול', 'מקור'],
+      MARKET_PACKAGES.map((p) => ({ fake: p.fake, cells: [brandCell(p.brand, p.fake), p.name, p.price, p.includes, sourceCell(p.source, p.url)] })),
+    ),
+  )
+  $('series-table').replaceChildren(
+    buildTable(
+      ['סדרה', 'ז׳אנר', 'איפה שודרה', 'הערכה', 'זמינה ב-No Cable (דמה)', 'מקור'],
+      MARKET_SERIES.map((s) => ({ cells: [s.title, s.genre, s.platform, s.note, s.noCable ? 'כן' : 'לא', sourceCell(s.source, s.url)] })),
+    ),
+  )
+}
+
 function renderMarket() {
   const all = marketState.mentions
   const filtered = all.filter((m) => marketState.brand === ALL || m.brand === marketState.brand)
@@ -224,6 +271,7 @@ function renderMarket() {
   renderSentimentChart(all)
   renderTrendChart(filtered)
   renderTopComments(filtered)
+  renderResearch()
   $('trend-scope').textContent = marketState.brand === ALL ? 'כל החברות' : marketState.brand
   $('market-clear').hidden = marketState.brand === ALL
 }

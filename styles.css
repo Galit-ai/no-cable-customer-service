@@ -177,3 +177,12 @@ button, input, select, textarea { font: inherit; }
 .top-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
 .sent-badge { flex-shrink: 0; color: #fff; font-size: 0.75rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; }
 @media (max-width: 899px) { .market-charts { grid-template-columns: 1fr; } .kpis-4 { grid-template-columns: repeat(2, 1fr); } }
+
+.research { margin-bottom: 16px; }
+.research .hint { margin: -6px 0 12px; }
+.table-scroll { overflow-x: auto; }
+.research-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 640px; }
+.research-table th { text-align: right; font-weight: 500; color: var(--text-muted); padding: 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.research-table td { padding: 8px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+.research-table tr.fake td { background: #fff8e6; }
+.fake-tag { display: inline-block; margin-inline-start: 6px; font-size: 0.7rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--yellow); color: #3b2a00; }
