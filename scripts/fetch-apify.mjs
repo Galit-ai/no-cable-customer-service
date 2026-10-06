@@ -43,7 +43,11 @@ async function runActor(actor, input) {
   return res.json()
 }
 
-const fresh = []
+const WINDOW_DAYS = 30
+// פרטיות: לא שומרים שמות או תמונות של כותבי התגובות (הריפו ציבורי), וגם לא תגובה שמכילה טלפון או מייל
+const PII = /(\+?\d[\d\- ]{8,}\d|[\w.]+@[\w.]+\.\w+)/
+
+const fetched = []
 for (const [brand, pageUrl] of Object.entries(PAGES)) {
   if (selected.length && !selected.includes(brand)) continue
   console.log(`${brand}: מביא פוסטים...`)
@@ -52,31 +56,35 @@ for (const [brand, pageUrl] of Object.entries(PAGES)) {
   if (!postUrls.length) continue
 
   console.log(`${brand}: מביא תגובות ל-${postUrls.length} פוסטים...`)
-  const comments = await runActor('apify~facebook-comments-scraper', {
+  const items = await runActor('apify~facebook-comments-scraper', {
     startUrls: postUrls.map((url) => ({ url })),
     resultsLimit: COMMENTS_PER_POST,
   })
-  comments.forEach((c, i) => {
-    if (!c.text) return
-    fresh.push({
-      id: c.id ?? `${brand}-${i}`,
-      brand,
-      author: c.profileName ?? 'משתמש',
-      text: c.text,
-      date: c.date,
-      likes: Number(c.likesCount ?? 0),
-      replies: Number(c.commentsCount ?? 0),
-      url: c.commentUrl ?? c.facebookUrl ?? c.postUrl ?? '',
-    })
-  })
+  // פריט עם error הוא פוסט שאי אפשר היה לקרוא (למשל ריל פרטי): מדלגים
+  for (const c of items) if (!c.error && c.text && c.date) fetched.push({ brand, c })
 }
 
+// ההתאמה לחברה לפי הדף שממנו הגיע הפוסט; חלון זמן: 30 הימים שלפני התגובה החדשה ביותר
+const newest = Math.max(0, ...fetched.map(({ c }) => new Date(c.date).getTime()))
+const fresh = fetched
+  .filter(({ c }) => new Date(c.date).getTime() > newest - WINDOW_DAYS * 24 * 60 * 60 * 1000 && !PII.test(c.text))
+  .map(({ brand, c }) => ({
+    id: `fb_${c.commentId ?? c.id}`,
+    brand,
+    author: 'משתמש/ת בפייסבוק',
+    text: c.text.trim(),
+    date: c.date,
+    likes: Number(c.likesCount ?? 0),
+    replies: Number(c.commentsCount ?? 0),
+    url: c.commentUrl ?? c.facebookUrl ?? '',
+  }))
+
 // חברה שהתקבלו לה תגובות מוחלפת; השאר נשמרות כפי שהיו בקובץ
-const fetched = new Set(fresh.map((c) => c.brand))
+const gotBrands = new Set(fresh.map((c) => c.brand))
 let kept = []
 if (existsSync(FILE)) {
   const text = readFileSync(FILE, 'utf8')
-  kept = JSON.parse(text.slice(text.indexOf('['), text.lastIndexOf(']') + 1)).filter((c) => !fetched.has(c.brand))
+  kept = JSON.parse(text.slice(text.indexOf('['), text.lastIndexOf(']') + 1)).filter((c) => !gotBrands.has(c.brand))
 }
 writeFileSync(FILE, HEADER + JSON.stringify([...kept, ...fresh], null, 1) + '\n')
-console.log(`נשמרו ${fresh.length} תגובות חדשות (${[...fetched].join(', ') || 'אין'})`)
+console.log(`נשמרו ${fresh.length} תגובות חדשות (${[...gotBrands].join(', ') || 'אין'})`)
