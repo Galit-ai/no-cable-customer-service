@@ -389,7 +389,7 @@ function renderMarket() {
   renderMarketKpis(all, filtered)
   renderSentimentChart(all)
   renderTrendChart(filtered)
-  renderTopComments(filtered)
+  renderTopComments(filtered.filter((m) => !m.leaving)) // תגובות עם כוונת עזיבה מוצגות בפאנל שלהן (14.9), לא פעמיים
   renderComplaints(marketState.mentions)
   renderLeaving(marketState.mentions)
   renderResearch()
