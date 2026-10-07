@@ -52,7 +52,19 @@
         <section class="panel exchange" aria-label="שערי חליפין">
           <h2>שערי חליפין לטיפול בפניות חיוב והחזר <span class="hint">(מקור: Frankfurter API, הבנק האירופי המרכזי)</span></h2>
           <div class="rates" id="exchange-rates" aria-live="polite">טוען שערים…</div>
-          <p class="hint" id="exchange-date"></p>
+          <p class="hint"><span id="exchange-date"></span> <button type="button" id="exchange-refresh" class="btn-light btn-small">רענן שערים</button></p>
+          <form class="converter" id="converter" aria-label="מחשבון המרה" onsubmit="return false">
+            <label class="field"><span>סכום</span><input id="conv-amount" type="number" min="0" step="0.01" inputmode="decimal" value="50" /></label>
+            <label class="field"><span>מטבע</span><select id="conv-currency"></select></label>
+            <label class="field"><span>המרה</span>
+              <select id="conv-direction">
+                <option value="toIls">ממטבע זר לשקלים (למשל להחזר ללקוח)</option>
+                <option value="fromIls">משקלים למטבע זר</option>
+              </select>
+            </label>
+            <output class="conv-result" id="conv-result" aria-live="polite"></output>
+          </form>
+          <p class="hint">שערי הבנק האירופי המרכזי: הערכה בלבד, לא בהכרח השער שיחויב או יזוכה בפועל ללקוח.</p>
         </section>
 
         <section class="panel tickets">

@@ -204,3 +204,9 @@ button, input, select, textarea { font: inherit; }
 .rate-value { font-size: 1.6rem; font-weight: 600; color: var(--text); }
 .rates.rates-error { display: block; color: var(--red); font-size: 0.9rem; }
 @media (max-width: 599px) { .rates { grid-template-columns: 1fr; } }
+
+.btn-small { min-height: 32px; padding: 2px 12px; font-size: 0.8rem; margin-inline-start: 8px; }
+.converter { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.converter input[type='number'] { width: 140px; }
+.conv-result { font-size: 1.3rem; font-weight: 600; color: var(--ink-on-bg); min-height: 40px; display: flex; align-items: center; }
+@media (max-width: 599px) { .converter { flex-direction: column; align-items: stretch; } .converter input[type='number'] { width: 100%; } }
